@@ -7,6 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root { --verde:#10b981; --verde-esc:#059669; --navy:#0b1220; --ink:#0f172a; --sub:#64748b; --linha:#e8edf4; }
   * { box-sizing:border-box; margin:0; }
@@ -69,7 +70,7 @@
 </style>
 </head>
 <body>
-<div class="banner">⚠️ SIMULAÇÃO — este Pix é de mentira, nenhum valor será cobrado</div>
+<div class="banner" id="banner">⚠️ SIMULAÇÃO — este Pix é de mentira, nenhum valor será cobrado</div>
 <div class="hero">
   <div class="marca"><div class="mark"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><path d="M 44.9 16.7 A 20 20 0 1 0 44.9 47.3" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round"/><circle cx="44.9" cy="16.7" r="8.6" fill="url(#lg)"/><circle cx="47.6" cy="14.9" r="2" fill="#060b16"/></svg></div>Cobra<b>Tech</b></div>
   <p id="heroTxt">Portal seguro de negociação</p>
@@ -86,6 +87,11 @@ async function carregar(){
   const r = await fetch('/api/portal/'+t);
   if(!r.ok){ app.innerHTML = '<div class="card">Link inválido ou expirado. Confira a mensagem que você recebeu.</div>'; return; }
   cob = await r.json();
+  if (cob.pix) {
+    const b = document.getElementById('banner');
+    b.style.background = '#0b1220'; b.style.color = '#34d399';
+    b.textContent = '🔒 Pagamento via Pix direto para ' + cob.pix.nome;
+  }
   render();
 }
 
@@ -128,7 +134,7 @@ function render(){
       <div class="prog-leg">${pagas}/${parcs.length} pagas</div></div>
       ${parcs.map(p=>`<div class="parc">
         <div><div class="n">Parcela ${p.parcela}</div><div class="v">${fmt(p.valor)}</div></div>
-        ${p.status==='pago' ? '<span class="pg">✓ Paga</span>' : `<button onclick="mostrarPix('${p.txid}',${p.valor})">Pagar via Pix</button>`}
+        ${p.status==='pago' ? '<span class="pg">✓ Paga</span>' : p.status==='informado' ? '<span style="color:#b45309;font-weight:700;font-size:12.5px">⏳ Em confirmação</span>' : `<button onclick="pagarParcela('${p.txid}')">Pagar via Pix</button>`}
       </div>`).join('')}
       <div id="pixArea"></div>
     </div>`;
@@ -152,24 +158,38 @@ function render(){
     <button class="btn sec" onclick="fecharAcordo()">Fechar acordo parcelado</button>
     <div id="pixArea"></div>
   </div>`;
+  if (cob.pagamentos.some(p=>p.status==='informado')) aguardando();
 }
 
-function mostrarPix(txid, valor){
+function mostrarPix(txid, valor, brcode){
+  const real = !!brcode;
+  const codigo = real ? brcode : pixFake(txid, valor);
   document.getElementById('pixArea').innerHTML = `
     <div class="ou">pague com o app do seu banco</div>
     <div class="qr-box">
-      <div class="qr">${qrSvg(txid)}</div>
-      <div class="pix-code" id="pixCode">${pixFake(txid, valor)}</div>
+      <div class="qr" id="qrReal">${real ? '' : qrSvg(txid)}</div>
+      <div class="pix-code" id="pixCode">${codigo}</div>
       <button class="copiar" onclick="navigator.clipboard.writeText(document.getElementById('pixCode').textContent);this.textContent='✓ Copiado!'">⧉ Copiar código Pix</button>
     </div>
-    <button class="btn" onclick="confirmar('${txid}')">Já paguei — simular confirmação</button>`;
+    <button class="btn" onclick="confirmar('${txid}')">${real ? 'Já fiz o pagamento' : 'Já paguei — simular confirmação'}</button>`;
+  if (real && window.QRCode) new QRCode(document.getElementById('qrReal'), { text: codigo, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
   document.getElementById('pixArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function aguardando(){
+  document.getElementById('pixArea').innerHTML = `
+    <div class="ou">quase lá</div>
+    <div style="background:#fffbeb;border:1.5px solid #fbbf24;border-radius:13px;padding:16px;text-align:center;font-size:14px;color:#92400e;font-weight:600">
+      ⏳ Pagamento informado! Assim que o valor for identificado na conta, sua pendência será baixada automaticamente.
+    </div>`;
 }
 
 async function pagarTotal(comDesconto){
   const p = await (await fetch('/api/portal/'+t+'/pagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({desconto:!!comDesconto})})).json();
-  mostrarPix(p.txid, p.valor);
+  mostrarPix(p.txid, p.valor, p.brcode);
 }
+
+function pagarParcela(txid){ const p = cob.pagamentos.find(x=>x.txid===txid); mostrarPix(p.txid, p.valor, p.brcode); }
 
 async function fecharAcordo(){
   const n = document.getElementById('selParc').value;
@@ -178,6 +198,11 @@ async function fecharAcordo(){
 }
 
 async function confirmar(txid){
+  if (cob.pix) { // modo real: devedor informa, credor confirma
+    await fetch('/api/portal/'+t+'/informei',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({txid})});
+    aguardando();
+    return;
+  }
   await fetch('/api/webhook/pix',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({txid})});
   await carregar();
 }

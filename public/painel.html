@@ -113,10 +113,13 @@
           <div class="campo"><label>Valor (R$)</label><input name="valor" type="number" step="0.01" min="1" placeholder="0,00" required></div>
           <div class="campo"><label>Vencimento</label><input name="vencimento" type="date" required></div>
           <div class="campo"><label>Referente a</label><input name="descricao" placeholder="Ex.: Fatura #123 (opcional)"></div>
+          <div class="campo"><label>Chave Pix do credor</label><input name="chavePix" placeholder="Vazio = demonstração"></div>
+          <div class="campo"><label>Nome do recebedor</label><input name="pixNome" placeholder="Como aparece no banco"></div>
+          <div class="campo"><label>Cidade do recebedor</label><input name="pixCidade" placeholder="Ex.: São Paulo"></div>
         </div>
         <div style="margin-top:14px; display:flex; align-items:center; gap:14px">
           <button class="btn" type="submit">+ Criar cobrança</button>
-          <span class="dica">💡 Use um vencimento no passado para ver a régua disparar as etapas na hora.</span>
+          <span class="dica">💡 Com chave Pix, o portal gera QR Code real direto para a conta do credor. Sem chave, o pagamento é simulado.</span>
         </div>
       </form>
     </div>
@@ -168,7 +171,8 @@ async function carregar() {
     <td><div class="quem"><div class="avatar">${iniciais(c.devedor.nome)}</div><div><div style="font-weight:600">${c.devedor.nome}</div><div class="tel">${c.devedor.telefone||c.devedor.email||''}</div></div></div></td>
     <td class="val">${fmt(c.valor)}</td>
     <td>${c.vencimento.split('-').reverse().join('/')}${c.diasAtraso>0&&c.status==='aberta'?`<div class="atraso">${c.diasAtraso} dias de atraso</div>`:''}</td>
-    <td><span class="tag ${c.status}">${({aberta:'Em aberto',acordo:'Acordo ativo',paga:'Paga ✓'})[c.status]}</span>${c.acordo?`<div class="sub-tag">${c.pagamentos.filter(p=>p.status==='pago').length}/${c.acordo.parcelas} parcelas de ${fmt(c.acordo.valorParcela)}</div>`:''}</td>
+    <td><span class="tag ${c.status}">${({aberta:'Em aberto',acordo:'Acordo ativo',paga:'Paga ✓'})[c.status]}</span>${c.pix?'<div class="sub-tag">Pix real → '+c.pix.chave.slice(0,18)+'…</div>':''}${c.acordo?`<div class="sub-tag">${c.pagamentos.filter(p=>p.status==='pago').length}/${c.acordo.parcelas} parcelas de ${fmt(c.acordo.valorParcela)}</div>`:''}
+    ${c.pagamentos.filter(p=>p.status==='informado').map(p=>`<div style="margin-top:6px"><button class="btn mini" style="background:#fef3c7;border-color:#fbbf24" onclick="confirmarPg('${c.id}','${p.txid}')">💰 Confirmar R$ ${fmt(p.valor).replace('R$ ','')} recebido</button></div>`).join('')}</td>
     <td><div class="acoes"><button class="btn mini" onclick="copiar('${c.token}')">🔗 Copiar link</button><button class="btn mini" onclick="window.open('/portal/${c.token}')">↗ Abrir</button></div></td>
     <td><button class="btn mini" onclick="detalhes('${c.id}','${c.devedor.nome.replace(/'/g,'')}')">Detalhes</button></td>
   </tr>`).join('') || `<tr><td colspan="6"><div class="vazio"><div class="e">🗂️</div>Nenhuma cobrança ainda — crie a primeira acima.</div></td></tr>`;
@@ -200,10 +204,16 @@ fNova.onsubmit = async e => {
   const f = new FormData(fNova);
   await fetch('/api/cobrancas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     devedor:{nome:f.get('nome'),telefone:f.get('telefone'),email:f.get('email')},
-    valor:f.get('valor'), vencimento:f.get('vencimento'), descricao:f.get('descricao')
+    valor:f.get('valor'), vencimento:f.get('vencimento'), descricao:f.get('descricao'),
+    pix:{chave:f.get('chavePix'), nome:f.get('pixNome'), cidade:f.get('pixCidade')}
   })});
   fNova.reset(); toast('Cobrança criada — régua ativada 🚀'); carregar();
 };
+
+async function confirmarPg(id, txid){
+  await fetch('/api/cobrancas/'+id+'/confirmar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({txid})});
+  toast('Recebimento confirmado — baixa realizada ✓'); carregar();
+}
 
 carregar();
 setInterval(carregar, 5000);
