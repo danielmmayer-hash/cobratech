@@ -9,7 +9,9 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const FEE_PERCENT = 10; // fee da Cobra Tech sobre valores recuperados
+const FEE_PERCENT = 10;        // success fee sobre valores recuperados (títulos +15 dias vencidos)
+const FEE_CARENCIA_DIAS = 15;  // até 15 dias de atraso, a recuperação é coberta pela assinatura (sem fee)
+const ALCADA_DESCONTO = 10;    // % máximo de desconto à vista que o portal pode ofertar (alçada do credor)
 
 // ---------- Persistência ----------
 let db = { cobrancas: [], eventos: [], leads: [] };
@@ -38,7 +40,8 @@ function registrarEvento(cobrancaId, tipo, descricao) {
 // ---------- Régua de cobrança (simulada) ----------
 // dias = dias de atraso a partir do vencimento
 const REGUA = [
-  { etapa: 'lembrete_whatsapp', dias: 0, descricao: 'WhatsApp (simulado): lembrete amigável de vencimento' },
+  { etapa: 'pre_vencimento', dias: -3, descricao: 'WhatsApp (simulado): prevenção — "sua fatura vence em 3 dias" com link de pagamento' },
+  { etapa: 'lembrete_whatsapp', dias: 0, descricao: 'WhatsApp (simulado): lembrete amigável no dia do vencimento' },
   { etapa: 'email_atraso', dias: 2, descricao: 'E-mail (simulado): aviso de atraso com link do portal' },
   { etapa: 'whatsapp_proposta', dias: 5, descricao: 'WhatsApp (simulado): proposta de parcelamento pelo portal' },
   { etapa: 'sms_urgencia', dias: 10, descricao: 'SMS (simulado): último aviso antes de negativação' },
@@ -117,9 +120,13 @@ function confirmarPix(txid) {
     if (p.status === 'pago') return { erro: 'Pagamento já confirmado' };
     p.status = 'pago';
     p.pagoEm = new Date().toISOString();
-    const fee = p.valor * (FEE_PERCENT / 100);
+    // Success fee só sobre títulos vencidos há mais de FEE_CARENCIA_DIAS (modelo híbrido do plano de negócio)
+    const atrasoNoPgto = Math.floor((Date.now() - new Date(c.vencimento + 'T00:00:00').getTime()) / 86400000);
+    const cobraFee = atrasoNoPgto > FEE_CARENCIA_DIAS;
+    const fee = cobraFee ? p.valor * (FEE_PERCENT / 100) : 0;
     c.fee = Number((c.fee + fee).toFixed(2));
-    registrarEvento(c.id, 'pagamento', `Webhook Pix (simulado): ${txid} confirmado — R$ ${p.valor.toFixed(2)} recebido, fee Cobra Tech (${FEE_PERCENT}%) R$ ${fee.toFixed(2)}`);
+    registrarEvento(c.id, 'pagamento', `Webhook Pix (simulado): ${txid} confirmado — R$ ${p.valor.toFixed(2)} recebido. ` +
+      (cobraFee ? `Success fee (${FEE_PERCENT}%): R$ ${fee.toFixed(2)}` : `Sem success fee (título com ${atrasoNoPgto} dias de atraso, dentro da carência de ${FEE_CARENCIA_DIAS} dias — coberto pela assinatura)`));
     const pendentes = c.pagamentos.filter(x => x.status !== 'pago');
     if (pendentes.length === 0 || p.tipo === 'total') {
       c.status = 'paga';
@@ -171,7 +178,7 @@ const server = http.createServer(async (req, res) => {
   if (mPortal && req.method === 'GET') {
     const c = db.cobrancas.find(c => c.token === mPortal[1]);
     if (!c) return json(res, 404, { erro: 'Cobrança não encontrada' });
-    return json(res, 200, { ...c, diasAtraso: diasAtraso(c), feePercent: FEE_PERCENT });
+    return json(res, 200, { ...c, diasAtraso: diasAtraso(c), feePercent: FEE_PERCENT, descontoAvista: ALCADA_DESCONTO });
   }
   const mAcordo = p.match(/^\/api\/portal\/([a-f0-9]+)\/acordo$/);
   if (mAcordo && req.method === 'POST') {
@@ -186,6 +193,13 @@ const server = http.createServer(async (req, res) => {
     const c = db.cobrancas.find(c => c.token === mPagar[1]);
     if (!c) return json(res, 404, { erro: 'Cobrança não encontrada' });
     if (c.status !== 'aberta') return json(res, 400, { erro: 'Cobrança não está aberta' });
+    const b = await corpo(req);
+    // Desconto à vista dentro da alçada definida pelo credor (só para títulos em atraso)
+    if (b.desconto && diasAtraso(c) > 0) {
+      const valorDesc = c.valor * (1 - ALCADA_DESCONTO / 100);
+      registrarEvento(c.id, 'acordo', `Devedor aceitou quitação à vista com ${ALCADA_DESCONTO}% de desconto (alçada do credor) — R$ ${valorDesc.toFixed(2)}`);
+      return json(res, 200, novoPix(c, 'total', null, valorDesc));
+    }
     return json(res, 200, novoPix(c, 'total', null, c.valor));
   }
   // Leads da landing page (validação com o público)
@@ -194,7 +208,7 @@ const server = http.createServer(async (req, res) => {
     if (!b.nome || !(b.whatsapp || b.email)) return json(res, 400, { erro: 'Informe nome e um contato (WhatsApp ou e-mail)' });
     const lead = { id: id(), nome: String(b.nome).slice(0,120), empresa: String(b.empresa||'').slice(0,120),
       whatsapp: String(b.whatsapp||'').slice(0,40), email: String(b.email||'').slice(0,120),
-      volume: String(b.volume||'').slice(0,60), quando: new Date().toISOString() };
+      segmento: String(b.segmento||'').slice(0,60), volume: String(b.volume||'').slice(0,60), quando: new Date().toISOString() };
     db.leads.push(lead);
     salvar();
     return json(res, 201, { ok: true });
