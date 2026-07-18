@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: cobratech
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: npm start

@@ -1,0 +1,10 @@
+{
+  "name": "cobratech",
+  "version": "1.0.0",
+  "description": "Cobra Tech — sistema de cobrança extrajudicial (simulação, sem pagamentos reais)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
