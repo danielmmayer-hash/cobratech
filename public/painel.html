@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cobra Tech — Painel</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde:#10b981; --verde-esc:#059669; --navy:#0b1220; --navy2:#111a2e;
+    --ink:#0f172a; --sub:#64748b; --linha:#e8edf4; --fundo:#f4f6fa;
+    --amber:#f59e0b; --red:#ef4444; --azul:#3b82f6; --roxo:#8b5cf6;
+    --radius:16px; --sombra:0 1px 2px rgba(15,23,42,.05), 0 8px 24px -12px rgba(15,23,42,.12);
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:var(--fundo); color:var(--ink); font-size:14px; }
+
+  /* Topbar */
+  .topbar { background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%); color:#fff; padding:0 28px; height:64px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:10; }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:17px; letter-spacing:-.3px; }
+  .logo .mark { width:34px; height:34px; border-radius:10px; background:#060b16; display:grid; place-items:center; box-shadow:0 4px 12px rgba(16,185,129,.35), inset 0 0 0 1px rgba(52,211,153,.25); }
+  .logo .mark svg { width:22px; height:22px; }
+  .logo span b { color:#34d399; }
+  .sim { margin-left:auto; background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.45); color:#fbbf24; font-size:11.5px; font-weight:600; padding:6px 14px; border-radius:99px; display:flex; align-items:center; gap:6px; }
+  .dot { width:7px; height:7px; border-radius:99px; background:#fbbf24; animation:pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity:.35 } }
+
+  main { max-width:1080px; margin:28px auto 60px; padding:0 20px; }
+
+  /* Stat cards */
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+  .card { background:#fff; border-radius:var(--radius); padding:18px 20px; box-shadow:var(--sombra); border:1px solid var(--linha); display:flex; gap:14px; align-items:center; }
+  .card .ico { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+  .ico.a { background:#fef2f2; } .ico.b { background:#ecfdf5; } .ico.c { background:#eff6ff; } .ico.d { background:#faf5ff; }
+  .card .n { font-size:22px; font-weight:800; letter-spacing:-.5px; line-height:1.15; }
+  .card .l { font-size:12px; color:var(--sub); font-weight:500; margin-top:2px; }
+
+  /* Sections */
+  section { background:#fff; border-radius:var(--radius); box-shadow:var(--sombra); border:1px solid var(--linha); margin-top:22px; overflow:hidden; }
+  .sec-head { padding:18px 22px 0; display:flex; align-items:baseline; gap:10px; }
+  .sec-head h2 { font-size:15.5px; font-weight:700; letter-spacing:-.2px; }
+  .sec-head .hint { font-size:12px; color:var(--sub); }
+  .sec-body { padding:16px 22px 22px; }
+
+  /* Form */
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .campo label { display:block; font-size:11.5px; font-weight:600; color:var(--sub); margin:0 0 5px 2px; text-transform:uppercase; letter-spacing:.4px; }
+  input { width:100%; padding:11px 13px; border:1.5px solid var(--linha); border-radius:10px; font-size:14px; font-family:inherit; background:#fbfcfe; transition:.15s; }
+  input:focus { outline:none; border-color:var(--verde); background:#fff; box-shadow:0 0 0 3px rgba(16,185,129,.12); }
+  .btn { padding:12px 22px; border:0; border-radius:10px; background:linear-gradient(135deg,var(--verde),var(--verde-esc)); color:#fff; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,.35); transition:.15s; }
+  .btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(16,185,129,.45); }
+  .btn.mini { padding:7px 12px; font-size:12.5px; font-weight:600; background:#f1f5f9; color:var(--ink); box-shadow:none; border:1px solid var(--linha); }
+  .btn.mini:hover { background:#e8edf4; transform:none; }
+  .dica { font-size:12px; color:var(--sub); margin-top:12px; display:flex; gap:6px; align-items:center; }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.6px; padding:12px 22px; border-bottom:1px solid var(--linha); background:#fafbfd; }
+  td { padding:14px 22px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+  tr:last-child td { border-bottom:0; }
+  tr.linha:hover td { background:#fafcff; }
+  .quem { display:flex; align-items:center; gap:11px; }
+  .avatar { width:36px; height:36px; border-radius:99px; background:linear-gradient(135deg,#e0e7ff,#c7d2fe); color:#4338ca; display:grid; place-items:center; font-weight:700; font-size:13px; flex-shrink:0; }
+  .quem .tel { font-size:12px; color:var(--sub); }
+  .val { font-weight:700; }
+  .atraso { color:var(--red); font-weight:600; font-size:12.5px; }
+  .tag { padding:4px 11px; border-radius:99px; font-size:11.5px; font-weight:700; display:inline-block; }
+  .tag.aberta { background:#fef2f2; color:#b91c1c; } .tag.acordo { background:#fffbeb; color:#b45309; } .tag.paga { background:#ecfdf5; color:#047857; }
+  .sub-tag { font-size:11.5px; color:var(--sub); margin-top:3px; }
+  .acoes { display:flex; gap:6px; flex-wrap:wrap; }
+  .vazio { text-align:center; padding:44px 20px; color:var(--sub); }
+  .vazio .e { font-size:34px; margin-bottom:8px; }
+
+  /* Timeline */
+  .tl { position:relative; padding-left:26px; }
+  .tl::before { content:''; position:absolute; left:8px; top:6px; bottom:6px; width:2px; background:var(--linha); border-radius:2px; }
+  .ev { position:relative; padding:9px 0 9px 8px; }
+  .ev .pin { position:absolute; left:-24px; top:13px; width:14px; height:14px; border-radius:99px; border:3px solid #fff; box-shadow:0 0 0 1.5px var(--linha); }
+  .pin.criacao { background:var(--azul); } .pin.regua { background:var(--amber); } .pin.pix { background:var(--roxo); }
+  .pin.acordo { background:#14b8a6; } .pin.pagamento,.pin.baixa { background:var(--verde); }
+  .ev .q { font-size:11.5px; color:var(--sub); font-weight:600; }
+  .ev .d { font-size:13.5px; margin-top:2px; line-height:1.45; }
+
+  /* Toast */
+  #toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--navy); color:#fff; padding:12px 22px; border-radius:12px; font-weight:600; font-size:13.5px; box-shadow:0 10px 30px rgba(0,0,0,.3); transition:.3s; opacity:0; }
+  #toast.on { transform:translateX(-50%) translateY(0); opacity:1; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><div class="mark"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><path d="M 44.9 16.7 A 20 20 0 1 0 44.9 47.3" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round"/><circle cx="44.9" cy="16.7" r="8.6" fill="url(#lg)"/><circle cx="47.6" cy="14.9" r="2" fill="#060b16"/></svg></div><span>Cobra<b>Tech</b></span></div>
+  <div class="sim"><span class="dot"></span> AMBIENTE DE SIMULAÇÃO — nenhum pagamento é real</div>
+</div>
+<main>
+  <div class="cards">
+    <div class="card"><div class="ico a">📥</div><div><div class="n" id="stAberto">—</div><div class="l">Em aberto</div></div></div>
+    <div class="card"><div class="ico b">💰</div><div><div class="n" id="stRecuperado">—</div><div class="l">Recuperado</div></div></div>
+    <div class="card"><div class="ico c">✨</div><div><div class="n" id="stFee">—</div><div class="l">Seu fee (10%)</div></div></div>
+    <div class="card"><div class="ico d">📋</div><div><div class="n" id="stQtd">—</div><div class="l">Cobranças ativas</div></div></div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Nova cobrança</h2><span class="hint">o devedor recebe um link exclusivo de negociação</span></div>
+    <div class="sec-body">
+      <form id="fNova">
+        <div class="grid">
+          <div class="campo"><label>Devedor</label><input name="nome" placeholder="Nome completo" required></div>
+          <div class="campo"><label>WhatsApp</label><input name="telefone" placeholder="(11) 99999-0000"></div>
+          <div class="campo"><label>E-mail</label><input name="email" type="email" placeholder="email@exemplo.com"></div>
+          <div class="campo"><label>Valor (R$)</label><input name="valor" type="number" step="0.01" min="1" placeholder="0,00" required></div>
+          <div class="campo"><label>Vencimento</label><input name="vencimento" type="date" required></div>
+          <div class="campo"><label>Referente a</label><input name="descricao" placeholder="Ex.: Fatura #123 (opcional)"></div>
+        </div>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:14px">
+          <button class="btn" type="submit">+ Criar cobrança</button>
+          <span class="dica">💡 Use um vencimento no passado para ver a régua disparar as etapas na hora.</span>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Cobranças</h2><span class="hint" id="hintQtd"></span></div>
+    <table>
+      <thead><tr><th>Devedor</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Portal do devedor</th><th></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Interessados no serviço</h2><span class="hint">leads do formulário do site</span></div>
+    <table>
+      <thead><tr><th>Nome</th><th>Empresa</th><th>WhatsApp</th><th>Volume em atraso</th><th>Quando</th></tr></thead>
+      <tbody id="tbodyLeads"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Linha do tempo</h2><span class="hint" id="tlNome">todos os eventos</span></div>
+    <div class="sec-body"><div class="tl" id="timeline"></div></div>
+  </section>
+</main>
+<div id="toast"></div>
+<script>
+const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+const iniciais = n => n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
+let selecionada = null;
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2400); }
+
+async function carregar() {
+  const cs = await (await fetch('/api/cobrancas')).json();
+  let aberto=0, recuperado=0, fee=0, ativas=0;
+  for (const c of cs) {
+    const pago = c.pagamentos.filter(p=>p.status==='pago').reduce((s,p)=>s+p.valor,0);
+    recuperado += pago; fee += c.fee;
+    if (c.status!=='paga') { aberto += c.valor - pago; ativas++; }
+  }
+  stAberto.textContent=fmt(aberto); stRecuperado.textContent=fmt(recuperado);
+  stFee.textContent=fmt(fee); stQtd.textContent=ativas;
+  hintQtd.textContent = cs.length ? cs.length+' no total' : '';
+
+  tbody.innerHTML = cs.map(c=>`<tr class="linha">
+    <td><div class="quem"><div class="avatar">${iniciais(c.devedor.nome)}</div><div><div style="font-weight:600">${c.devedor.nome}</div><div class="tel">${c.devedor.telefone||c.devedor.email||''}</div></div></div></td>
+    <td class="val">${fmt(c.valor)}</td>
+    <td>${c.vencimento.split('-').reverse().join('/')}${c.diasAtraso>0&&c.status==='aberta'?`<div class="atraso">${c.diasAtraso} dias de atraso</div>`:''}</td>
+    <td><span class="tag ${c.status}">${({aberta:'Em aberto',acordo:'Acordo ativo',paga:'Paga ✓'})[c.status]}</span>${c.acordo?`<div class="sub-tag">${c.pagamentos.filter(p=>p.status==='pago').length}/${c.acordo.parcelas} parcelas de ${fmt(c.acordo.valorParcela)}</div>`:''}</td>
+    <td><div class="acoes"><button class="btn mini" onclick="copiar('${c.token}')">🔗 Copiar link</button><button class="btn mini" onclick="window.open('/portal/${c.token}')">↗ Abrir</button></div></td>
+    <td><button class="btn mini" onclick="detalhes('${c.id}','${c.devedor.nome.replace(/'/g,'')}')">Detalhes</button></td>
+  </tr>`).join('') || `<tr><td colspan="6"><div class="vazio"><div class="e">🗂️</div>Nenhuma cobrança ainda — crie a primeira acima.</div></td></tr>`;
+
+  mostrarEventos(selecionada?.id, selecionada?.nome);
+
+  const leads = await (await fetch('/api/leads')).json();
+  tbodyLeads.innerHTML = leads.map(l=>`<tr class="linha">
+    <td><div class="quem"><div class="avatar" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#047857">${iniciais(l.nome)}</div><div style="font-weight:600">${l.nome}</div></div></td>
+    <td>${l.empresa||'—'}</td><td>${l.whatsapp||l.email||'—'}</td><td>${l.volume||'—'}</td>
+    <td>${new Date(l.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+  </tr>`).join('') || `<tr><td colspan="5"><div class="vazio"><div class="e">📣</div>Quando alguém preencher o formulário do site, aparece aqui.</div></td></tr>`;
+}
+
+function copiar(t){ navigator.clipboard.writeText(location.origin+'/portal/'+t); toast('Link do portal copiado! Envie ao devedor.'); }
+function detalhes(id, nome){ selecionada={id,nome}; mostrarEventos(id,nome); document.getElementById('timeline').scrollIntoView({behavior:'smooth',block:'center'}); }
+
+async function mostrarEventos(id, nome){
+  const evs = await (await fetch('/api/eventos'+(id?'?cobrancaId='+id:''))).json();
+  tlNome.textContent = nome ? '— '+nome : 'todos os eventos';
+  timeline.innerHTML = evs.slice(0,40).map(e=>`<div class="ev"><span class="pin ${e.tipo}"></span>
+    <div class="q">${new Date(e.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    <div class="d">${e.descricao}</div></div>`).join('')
+    || '<div class="vazio"><div class="e">🕐</div>Os eventos das cobranças aparecem aqui.</div>';
+}
+
+fNova.onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(fNova);
+  await fetch('/api/cobrancas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    devedor:{nome:f.get('nome'),telefone:f.get('telefone'),email:f.get('email')},
+    valor:f.get('valor'), vencimento:f.get('vencimento'), descricao:f.get('descricao')
+  })});
+  fNova.reset(); toast('Cobrança criada — régua ativada 🚀'); carregar();
+};
+
+carregar();
+setInterval(carregar, 5000);
+</script>
+</body>
+</html>

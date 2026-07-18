@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cobra Tech — Recupere cobranças em atraso sem dor de cabeça</title>
+<meta name="description" content="Régua de cobrança automática, portal de negociação e Pix. Você só paga 10% do que a gente recuperar.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --verde:#10b981; --verde-esc:#059669; --menta:#34d399; --navy:#0b1220; --navy2:#111a2e;
+    --ink:#0f172a; --sub:#64748b; --linha:#e8edf4; --fundo:#f4f6fa; }
+  * { box-sizing:border-box; margin:0; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#fff; color:var(--ink); font-size:15px; line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 22px; }
+
+  /* Nav */
+  nav { background:rgba(11,18,32,.92); backdrop-filter:blur(10px); position:sticky; top:0; z-index:20; }
+  nav .wrap { height:62px; display:flex; align-items:center; gap:12px; }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:16.5px; color:#fff; text-decoration:none; }
+  .logo .mark { width:32px; height:32px; border-radius:9px; background:#060b16; display:grid; place-items:center; box-shadow:inset 0 0 0 1px rgba(52,211,153,.3); }
+  .logo .mark svg { width:20px; height:20px; }
+  .logo b { color:var(--menta); }
+  nav .links { margin-left:auto; display:flex; gap:22px; align-items:center; }
+  nav a.l { color:#cbd5e1; text-decoration:none; font-size:13.5px; font-weight:600; }
+  nav a.l:hover { color:#fff; }
+  .btn { display:inline-block; padding:12px 22px; border:0; border-radius:11px; background:linear-gradient(135deg,var(--verde),var(--verde-esc)); color:#fff; font-weight:700; font-size:14.5px; font-family:inherit; cursor:pointer; text-decoration:none; box-shadow:0 6px 16px rgba(16,185,129,.35); transition:.15s; }
+  .btn:hover { transform:translateY(-1px); }
+  .btn.ghost { background:transparent; border:1.5px solid #2c3a55; color:#e2e8f0; box-shadow:none; }
+  .btn.big { padding:15px 30px; font-size:15.5px; }
+
+  /* Hero */
+  .hero { background:linear-gradient(150deg,var(--navy) 0%,#16233f 62%,#1b3a34 100%); color:#fff; padding:76px 0 90px; position:relative; overflow:hidden; }
+  .hero::after { content:''; position:absolute; right:-140px; top:-140px; width:430px; height:430px; border-radius:99em; background:radial-gradient(circle,rgba(16,185,129,.16),transparent 65%); }
+  .hero .wrap { position:relative; z-index:1; }
+  .pill { display:inline-flex; align-items:center; gap:8px; background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.35); color:var(--menta); font-size:12.5px; font-weight:700; padding:7px 15px; border-radius:99px; }
+  h1 { font-size:clamp(30px,5vw,48px); font-weight:800; letter-spacing:-1.5px; line-height:1.12; margin:22px 0 18px; max-width:640px; }
+  h1 em { color:var(--menta); font-style:normal; }
+  .hero p.sub { color:#b9c4d4; font-size:17px; max-width:540px; }
+  .hero .ctas { display:flex; gap:14px; margin-top:32px; flex-wrap:wrap; }
+  .provas { display:flex; gap:34px; margin-top:44px; flex-wrap:wrap; }
+  .provas .p b { display:block; font-size:22px; font-weight:800; color:#fff; }
+  .provas .p span { font-size:12.5px; color:#8fa0b8; }
+
+  /* Sections */
+  section { padding:74px 0; }
+  section.cinza { background:var(--fundo); }
+  .kicker { color:var(--verde-esc); font-weight:800; font-size:12.5px; text-transform:uppercase; letter-spacing:1.2px; }
+  h2 { font-size:clamp(24px,3.4vw,34px); font-weight:800; letter-spacing:-.8px; margin:10px 0 14px; }
+  .lead { color:var(--sub); max-width:560px; font-size:16px; }
+
+  .passos { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin-top:40px; }
+  .passo { background:#fff; border:1px solid var(--linha); border-radius:18px; padding:26px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+  .passo .num { width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,var(--verde),var(--verde-esc)); color:#fff; font-weight:800; display:grid; place-items:center; font-size:16px; margin-bottom:16px; }
+  .passo h3 { font-size:16.5px; font-weight:700; margin-bottom:8px; letter-spacing:-.2px; }
+  .passo p { color:var(--sub); font-size:14px; }
+
+  /* Preço */
+  .preco { display:flex; align-items:center; gap:40px; flex-wrap:wrap; margin-top:36px; }
+  .preco .num-big { font-size:clamp(60px,9vw,96px); font-weight:800; letter-spacing:-4px; background:linear-gradient(135deg,var(--verde),var(--verde-esc)); -webkit-background-clip:text; background-clip:text; color:transparent; line-height:1; }
+  .preco ul { list-style:none; display:grid; gap:12px; }
+  .preco li { display:flex; gap:11px; align-items:flex-start; font-size:15px; }
+  .preco li::before { content:'✓'; flex-shrink:0; width:22px; height:22px; border-radius:99px; background:#ecfdf5; color:var(--verde-esc); font-weight:800; font-size:12px; display:grid; place-items:center; margin-top:2px; }
+
+  /* Form */
+  .form-card { background:var(--navy); border-radius:24px; padding:44px; color:#fff; display:grid; grid-template-columns:1fr 1fr; gap:40px; }
+  @media (max-width:760px){ .form-card { grid-template-columns:1fr; padding:30px; } }
+  .form-card h2 { color:#fff; }
+  .form-card .lead { color:#b9c4d4; }
+  .campo { margin-top:14px; }
+  .campo label { display:block; font-size:11.5px; font-weight:700; color:#8fa0b8; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .campo input, .campo select { width:100%; padding:13px 15px; border-radius:11px; border:1.5px solid #2c3a55; background:#0e1729; color:#fff; font-size:14.5px; font-family:inherit; }
+  .campo input:focus { outline:none; border-color:var(--verde); }
+  .ok-lead { text-align:center; padding:30px 10px; }
+  .ok-lead .c { width:64px; height:64px; border-radius:99px; background:linear-gradient(135deg,var(--verde),var(--menta)); display:grid; place-items:center; font-size:30px; margin:0 auto 16px; }
+
+  footer { background:#060b16; color:#8fa0b8; padding:34px 0; font-size:12.5px; }
+  footer .wrap { display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; align-items:center; }
+  .aviso-demo { background:#fbbf24; color:#78350f; text-align:center; padding:8px 14px; font-size:12px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="aviso-demo">🚧 Plataforma em fase de validação — a demonstração é aberta e os pagamentos são simulados</div>
+<nav><div class="wrap">
+  <a class="logo" href="/"><span class="mark"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><path d="M 44.9 16.7 A 20 20 0 1 0 44.9 47.3" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round"/><circle cx="44.9" cy="16.7" r="8.6" fill="url(#lg)"/><circle cx="47.6" cy="14.9" r="2" fill="#060b16"/></svg></span>Cobra<b>Tech</b></a>
+  <div class="links">
+    <a class="l" href="#como">Como funciona</a>
+    <a class="l" href="#preco">Preço</a>
+    <a class="l" href="/painel.html">Demonstração</a>
+    <a class="btn" href="#interesse" style="padding:10px 18px; font-size:13.5px">Quero recuperar</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="pill">● Cobrança extrajudicial automatizada</span>
+  <h1>Cliente sumiu sem pagar?<br>A gente <em>recupera pra você</em>.</h1>
+  <p class="sub">Régua de cobrança automática, portal onde o devedor negocia sozinho e pagamento via Pix. Sem constrangimento, sem processo judicial, sem mensalidade.</p>
+  <div class="ctas">
+    <a class="btn big" href="#interesse">Quero recuperar minhas cobranças</a>
+    <a class="btn big ghost" href="/painel.html">Ver demonstração ao vivo →</a>
+  </div>
+  <div class="provas">
+    <div class="p"><b>10%</b><span>só sobre o que recuperarmos</span></div>
+    <div class="p"><b>R$ 0</b><span>de mensalidade ou adesão</span></div>
+    <div class="p"><b>100%</b><span>dentro do CDC e da LGPD</span></div>
+  </div>
+</div></header>
+
+<section id="como"><div class="wrap">
+  <span class="kicker">Como funciona</span>
+  <h2>Você cadastra. O sistema cobra. O devedor paga.</h2>
+  <p class="lead">Automatizamos o trabalho chato e constrangedor de cobrar, com uma abordagem firme e respeitosa.</p>
+  <div class="passos">
+    <div class="passo"><div class="num">1</div><h3>Cadastre a dívida</h3><p>Nome, valor e vencimento. Em segundos o sistema gera um link exclusivo de negociação para o devedor.</p></div>
+    <div class="passo"><div class="num">2</div><h3>A régua trabalha sozinha</h3><p>Lembretes e avisos por WhatsApp, e-mail e SMS em dias estratégicos — do lembrete amigável ao aviso formal.</p></div>
+    <div class="passo"><div class="num">3</div><h3>O devedor se resolve</h3><p>No portal, ele paga à vista via Pix ou parcela em até 6x sem falar com ninguém. Nada de ligação desconfortável.</p></div>
+    <div class="passo"><div class="num">4</div><h3>Você recebe</h3><p>Pagamento confirmado, baixa automática. Nosso fee de 10% só existe quando o dinheiro chega pra você.</p></div>
+  </div>
+</div></section>
+
+<section class="cinza" id="preco"><div class="wrap">
+  <span class="kicker">Preço simples</span>
+  <h2>Se a gente não recupera, você não paga.</h2>
+  <div class="preco">
+    <div class="num-big">10%</div>
+    <ul>
+      <li>Cobrado apenas sobre valores efetivamente recuperados</li>
+      <li>Sem mensalidade, sem taxa de adesão, sem fidelidade</li>
+      <li>Régua, portal de negociação e Pix inclusos</li>
+      <li>Acompanhe tudo em tempo real no painel</li>
+    </ul>
+  </div>
+</div></section>
+
+<section id="interesse"><div class="wrap">
+  <div class="form-card">
+    <div>
+      <span class="kicker" style="color:var(--menta)">Lista de interesse</span>
+      <h2>Tem cobranças em atraso? Vamos conversar.</h2>
+      <p class="lead">Estamos selecionando as primeiras empresas para operar. Deixe seu contato e chamamos você no WhatsApp.</p>
+    </div>
+    <form id="fLead">
+      <div class="campo"><label>Seu nome</label><input name="nome" required placeholder="Nome completo"></div>
+      <div class="campo"><label>Empresa / negócio</label><input name="empresa" placeholder="Ex.: Barcê Modas"></div>
+      <div class="campo"><label>WhatsApp</label><input name="whatsapp" placeholder="(11) 99999-0000"></div>
+      <div class="campo"><label>Quanto você tem a receber em atraso?</label>
+        <select name="volume">
+          <option>Até R$ 5 mil</option><option>R$ 5 a 20 mil</option>
+          <option>R$ 20 a 100 mil</option><option>Acima de R$ 100 mil</option>
+        </select></div>
+      <button class="btn big" type="submit" style="width:100%; margin-top:20px">Quero ser avisado</button>
+      <p style="font-size:11.5px; color:#8fa0b8; margin-top:12px">Usamos seu contato apenas para falar sobre a Cobra Tech. Nada de spam.</p>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>© 2026 Cobra Tech — recuperação de crédito extrajudicial.</span>
+  <span>Cobramos com respeito: CDC arts. 42 e 71 · LGPD.</span>
+</div></footer>
+
+<script>
+fLead.onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(fLead);
+  const r = await fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    nome:f.get('nome'), empresa:f.get('empresa'), whatsapp:f.get('whatsapp'), volume:f.get('volume')
+  })});
+  if (r.ok) fLead.outerHTML = `<div class="ok-lead"><div class="c">🤝</div><h2 style="font-size:22px">Recebido!</h2><p class="lead" style="margin:8px auto 0">Obrigado pelo interesse. Vamos te chamar no WhatsApp em breve.</p></div>`;
+};
+</script>
+</body>
+</html>
