@@ -57,12 +57,21 @@
   .passo h3 { font-size:16.5px; font-weight:700; margin-bottom:8px; letter-spacing:-.2px; }
   .passo p { color:var(--sub); font-size:14px; }
 
-  /* Preço */
-  .preco { display:flex; align-items:center; gap:40px; flex-wrap:wrap; margin-top:36px; }
-  .preco .num-big { font-size:clamp(60px,9vw,96px); font-weight:800; letter-spacing:-4px; background:linear-gradient(135deg,var(--verde),var(--verde-esc)); -webkit-background-clip:text; background-clip:text; color:transparent; line-height:1; }
-  .preco ul { list-style:none; display:grid; gap:12px; }
-  .preco li { display:flex; gap:11px; align-items:flex-start; font-size:15px; }
-  .preco li::before { content:'✓'; flex-shrink:0; width:22px; height:22px; border-radius:99px; background:#ecfdf5; color:var(--verde-esc); font-weight:800; font-size:12px; display:grid; place-items:center; margin-top:2px; }
+  /* Planos */
+  .planos { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-top:38px; }
+  .plano { background:#fff; border:1.5px solid var(--linha); border-radius:20px; padding:28px 26px; position:relative; display:flex; flex-direction:column; }
+  .plano.destaque { border-color:var(--verde); box-shadow:0 12px 34px -12px rgba(16,185,129,.35); }
+  .plano .badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,var(--verde),var(--verde-esc)); color:#fff; font-size:11px; font-weight:800; padding:5px 14px; border-radius:99px; letter-spacing:.4px; }
+  .plano h3 { font-size:18px; font-weight:800; letter-spacing:-.3px; }
+  .plano .publico { font-size:12.5px; color:var(--sub); margin-top:3px; min-height:34px; }
+  .preco-num { font-size:36px; font-weight:800; letter-spacing:-1.5px; margin-top:12px; }
+  .preco-num span { font-size:14px; color:var(--sub); font-weight:600; letter-spacing:0; }
+  .plano .fee { font-size:12.5px; font-weight:700; color:var(--verde-esc); background:#ecfdf5; border-radius:8px; padding:6px 10px; display:inline-block; margin-top:8px; align-self:flex-start; }
+  .plano ul { list-style:none; display:grid; gap:10px; margin:18px 0 22px; }
+  .plano li { display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:#334155; }
+  .plano li::before { content:'✓'; flex-shrink:0; width:19px; height:19px; border-radius:99px; background:#ecfdf5; color:var(--verde-esc); font-weight:800; font-size:11px; display:grid; place-items:center; margin-top:1px; }
+  .plano .btn { margin-top:auto; text-align:center; }
+  .btn.ghost2 { background:#fff; border:1.5px solid var(--linha); color:var(--ink); box-shadow:none; }
 
   /* Form */
   .form-card { background:var(--navy); border-radius:24px; padding:44px; color:#fff; display:grid; grid-template-columns:1fr 1fr; gap:40px; }
@@ -94,16 +103,16 @@
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <span class="pill">● Cobrança extrajudicial automatizada</span>
-  <h1>Cliente sumiu sem pagar?<br>A gente <em>recupera pra você</em>.</h1>
-  <p class="sub">Régua de cobrança automática, portal onde o devedor negocia sozinho e pagamento via Pix. Sem constrangimento, sem processo judicial, sem mensalidade.</p>
+  <span class="pill">● Para escolas, academias, clínicas e serviços B2B</span>
+  <h1>Você vende. A gente <em>garante que você recebe</em>.</h1>
+  <p class="sub">Régua de cobrança inteligente antes e depois do vencimento, portal onde o devedor negocia sozinho e Pix na hora. E só ganhamos de verdade quando o dinheiro atrasado volta para o seu caixa.</p>
   <div class="ctas">
     <a class="btn big" href="#interesse">Quero recuperar minhas cobranças</a>
     <a class="btn big ghost" href="/painel.html">Ver demonstração ao vivo →</a>
   </div>
   <div class="provas">
-    <div class="p"><b>10%</b><span>só sobre o que recuperarmos</span></div>
-    <div class="p"><b>R$ 0</b><span>de mensalidade ou adesão</span></div>
+    <div class="p"><b>10%</b><span>de success fee — o piso do mercado</span></div>
+    <div class="p"><b>15 dias</b><span>de carência: atraso recente não paga fee</span></div>
     <div class="p"><b>100%</b><span>dentro do CDC e da LGPD</span></div>
   </div>
 </div></header>
@@ -114,23 +123,39 @@
   <p class="lead">Automatizamos o trabalho chato e constrangedor de cobrar, com uma abordagem firme e respeitosa.</p>
   <div class="passos">
     <div class="passo"><div class="num">1</div><h3>Cadastre a dívida</h3><p>Nome, valor e vencimento. Em segundos o sistema gera um link exclusivo de negociação para o devedor.</p></div>
-    <div class="passo"><div class="num">2</div><h3>A régua trabalha sozinha</h3><p>Lembretes e avisos por WhatsApp, e-mail e SMS em dias estratégicos — do lembrete amigável ao aviso formal.</p></div>
-    <div class="passo"><div class="num">3</div><h3>O devedor se resolve</h3><p>No portal, ele paga à vista via Pix ou parcela em até 6x sem falar com ninguém. Nada de ligação desconfortável.</p></div>
-    <div class="passo"><div class="num">4</div><h3>Você recebe</h3><p>Pagamento confirmado, baixa automática. Nosso fee de 10% só existe quando o dinheiro chega pra você.</p></div>
+    <div class="passo"><div class="num">2</div><h3>A régua previne e cobra</h3><p>Mensagens por WhatsApp, e-mail e SMS antes e depois do vencimento, com tom e horário certos — do lembrete amigável ao aviso formal.</p></div>
+    <div class="passo"><div class="num">3</div><h3>O devedor se resolve</h3><p>No portal, ele quita à vista com desconto dentro da alçada que você definiu, ou parcela em até 6x — sem ligação desconfortável.</p></div>
+    <div class="passo"><div class="num">4</div><h3>Você recebe e acompanha</h3><p>Baixa automática via Pix e painel com aging da carteira e taxa de recuperação. O success fee de 10% só existe quando o atrasado volta.</p></div>
   </div>
 </div></section>
 
 <section class="cinza" id="preco"><div class="wrap">
-  <span class="kicker">Preço simples</span>
-  <h2>Se a gente não recupera, você não paga.</h2>
-  <div class="preco">
-    <div class="num-big">10%</div>
-    <ul>
-      <li>Cobrado apenas sobre valores efetivamente recuperados</li>
-      <li>Sem mensalidade, sem taxa de adesão, sem fidelidade</li>
-      <li>Régua, portal de negociação e Pix inclusos</li>
-      <li>Acompanhe tudo em tempo real no painel</li>
-    </ul>
+  <span class="kicker">Preço transparente</span>
+  <h2>Assinatura que se paga com a própria recuperação.</h2>
+  <p class="lead">Todos os planos têm success fee de <strong>10%</strong> — o piso do mercado — cobrado só sobre valores recuperados de títulos vencidos há mais de 15 dias. Atraso recente é coberto pela assinatura, sem fee.</p>
+  <div class="planos">
+    <div class="plano">
+      <h3>Essencial</h3><div class="publico">Pequenos negócios com carteira ativa</div>
+      <div class="preco-num">R$ 500<span>/mês</span></div>
+      <div class="fee">+ 10% sobre o recuperado</div>
+      <ul><li>Cobranças ilimitadas</li><li>Régua WhatsApp, e-mail e SMS</li><li>Portal de negociação com Pix</li></ul>
+      <a class="btn ghost2" href="#interesse">Começar</a>
+    </div>
+    <div class="plano destaque">
+      <div class="badge">Mais procurado</div>
+      <h3>Profissional</h3><div class="publico">PMEs com volume de recebíveis</div>
+      <div class="preco-num">R$ 750<span>/mês</span></div>
+      <div class="fee">+ 10% sobre o recuperado</div>
+      <ul><li>Tudo do Essencial</li><li>Score de propensão a pagamento</li><li>API, multiusuário e integração ERP</li></ul>
+      <a class="btn" href="#interesse">Começar</a>
+    </div>
+    <div class="plano">
+      <h3>Avançado</h3><div class="publico">Médias empresas e carteiras maiores</div>
+      <div class="preco-num">R$ 1.000<span>/mês</span></div>
+      <div class="fee">+ 10% sobre o recuperado</div>
+      <ul><li>Tudo do Profissional</li><li>Voz com IA e alçadas customizadas</li><li>SLA e atendimento dedicado</li></ul>
+      <a class="btn ghost2" href="#interesse">Falar com a gente</a>
+    </div>
   </div>
 </div></section>
 
@@ -144,6 +169,11 @@
     <form id="fLead">
       <div class="campo"><label>Seu nome</label><input name="nome" required placeholder="Nome completo"></div>
       <div class="campo"><label>Empresa / negócio</label><input name="empresa" placeholder="Ex.: Barcê Modas"></div>
+      <div class="campo"><label>Segmento</label>
+        <select name="segmento">
+          <option>Escola / curso</option><option>Academia</option><option>Clínica / saúde</option>
+          <option>Serviços B2B</option><option>Comércio</option><option>Outro</option>
+        </select></div>
       <div class="campo"><label>WhatsApp</label><input name="whatsapp" placeholder="(11) 99999-0000"></div>
       <div class="campo"><label>Quanto você tem a receber em atraso?</label>
         <select name="volume">
@@ -166,7 +196,7 @@ fLead.onsubmit = async e => {
   e.preventDefault();
   const f = new FormData(fLead);
   const r = await fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    nome:f.get('nome'), empresa:f.get('empresa'), whatsapp:f.get('whatsapp'), volume:f.get('volume')
+    nome:f.get('nome'), empresa:f.get('empresa'), segmento:f.get('segmento'), whatsapp:f.get('whatsapp'), volume:f.get('volume')
   })});
   if (r.ok) fLead.outerHTML = `<div class="ok-lead"><div class="c">🤝</div><h2 style="font-size:22px">Recebido!</h2><p class="lead" style="margin:8px auto 0">Obrigado pelo interesse. Vamos te chamar no WhatsApp em breve.</p></div>`;
 };

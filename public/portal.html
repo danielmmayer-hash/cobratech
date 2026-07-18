@@ -141,7 +141,10 @@ function render(){
     <div class="valor">${fmt(cob.valor)}</div>
     <div class="meta">Venceu em ${cob.vencimento.split('-').reverse().join('/')}${cob.diasAtraso>0 ? ` · <span class="atraso">${cob.diasAtraso} dias em atraso</span>` : ''}</div>
     ${cob.descricao ? `<div class="ref">📄 Referente a: ${cob.descricao}</div>` : ''}
-    <button class="btn" onclick="pagarTotal()">Pagar tudo agora via Pix</button>
+    ${cob.diasAtraso>0
+      ? `<button class="btn" onclick="pagarTotal(true)">Quitar à vista com ${cob.descontoAvista}% de desconto — ${fmt(cob.valor*(1-cob.descontoAvista/100))}</button>
+         <button class="btn sec" onclick="pagarTotal(false)" style="margin-top:10px">Pagar valor cheio (${fmt(cob.valor)})</button>`
+      : `<button class="btn" onclick="pagarTotal(false)">Pagar tudo agora via Pix</button>`}
     <div class="ou">ou parcele sem burocracia</div>
     <select id="selParc">
       ${[2,3,4,5,6].map(n=>`<option value="${n}">${n}x de ${fmt(cob.valor/n)}</option>`).join('')}
@@ -163,8 +166,8 @@ function mostrarPix(txid, valor){
   document.getElementById('pixArea').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-async function pagarTotal(){
-  const p = await (await fetch('/api/portal/'+t+'/pagar',{method:'POST'})).json();
+async function pagarTotal(comDesconto){
+  const p = await (await fetch('/api/portal/'+t+'/pagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({desconto:!!comDesconto})})).json();
   mostrarPix(p.txid, p.valor);
 }
 

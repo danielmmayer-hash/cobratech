@@ -97,7 +97,8 @@
   <div class="cards">
     <div class="card"><div class="ico a">📥</div><div><div class="n" id="stAberto">—</div><div class="l">Em aberto</div></div></div>
     <div class="card"><div class="ico b">💰</div><div><div class="n" id="stRecuperado">—</div><div class="l">Recuperado</div></div></div>
-    <div class="card"><div class="ico c">✨</div><div><div class="n" id="stFee">—</div><div class="l">Seu fee (10%)</div></div></div>
+    <div class="card"><div class="ico c">✨</div><div><div class="n" id="stFee">—</div><div class="l">Success fee (10% · +15d)</div></div></div>
+    <div class="card"><div class="ico d">📈</div><div><div class="n" id="stTaxa">—</div><div class="l">Taxa de recuperação</div></div></div>
     <div class="card"><div class="ico d">📋</div><div><div class="n" id="stQtd">—</div><div class="l">Cobranças ativas</div></div></div>
   </div>
 
@@ -132,7 +133,7 @@
   <section>
     <div class="sec-head"><h2>Interessados no serviço</h2><span class="hint">leads do formulário do site</span></div>
     <table>
-      <thead><tr><th>Nome</th><th>Empresa</th><th>WhatsApp</th><th>Volume em atraso</th><th>Quando</th></tr></thead>
+      <thead><tr><th>Nome</th><th>Empresa</th><th>Segmento</th><th>WhatsApp</th><th>Volume em atraso</th><th>Quando</th></tr></thead>
       <tbody id="tbodyLeads"></tbody>
     </table>
   </section>
@@ -160,6 +161,7 @@ async function carregar() {
   }
   stAberto.textContent=fmt(aberto); stRecuperado.textContent=fmt(recuperado);
   stFee.textContent=fmt(fee); stQtd.textContent=ativas;
+  stTaxa.textContent = (aberto+recuperado)>0 ? Math.round(recuperado/(aberto+recuperado)*100)+'%' : '—';
   hintQtd.textContent = cs.length ? cs.length+' no total' : '';
 
   tbody.innerHTML = cs.map(c=>`<tr class="linha">
@@ -176,9 +178,9 @@ async function carregar() {
   const leads = await (await fetch('/api/leads')).json();
   tbodyLeads.innerHTML = leads.map(l=>`<tr class="linha">
     <td><div class="quem"><div class="avatar" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#047857">${iniciais(l.nome)}</div><div style="font-weight:600">${l.nome}</div></div></td>
-    <td>${l.empresa||'—'}</td><td>${l.whatsapp||l.email||'—'}</td><td>${l.volume||'—'}</td>
+    <td>${l.empresa||'—'}</td><td>${l.segmento||'—'}</td><td>${l.whatsapp||l.email||'—'}</td><td>${l.volume||'—'}</td>
     <td>${new Date(l.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
-  </tr>`).join('') || `<tr><td colspan="5"><div class="vazio"><div class="e">📣</div>Quando alguém preencher o formulário do site, aparece aqui.</div></td></tr>`;
+  </tr>`).join('') || `<tr><td colspan="6"><div class="vazio"><div class="e">📣</div>Quando alguém preencher o formulário do site, aparece aqui.</div></td></tr>`;
 }
 
 function copiar(t){ navigator.clipboard.writeText(location.origin+'/portal/'+t); toast('Link do portal copiado! Envie ao devedor.'); }
