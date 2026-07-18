@@ -71,7 +71,7 @@ function rodarRegua() {
 setInterval(rodarRegua, 30000); // roda sozinha a cada 30 segundos
 
 // ---------- Regras de negócio ----------
-function criarCobranca({ devedor, valor, vencimento, descricao }) {
+function criarCobranca({ devedor, valor, vencimento, descricao, pix }) {
   const c = {
     id: id(),
     token: token(),
@@ -79,6 +79,12 @@ function criarCobranca({ devedor, valor, vencimento, descricao }) {
     valor: Number(valor),
     vencimento, // YYYY-MM-DD
     descricao: descricao || '',
+    // Modelo 1: Pix direto na conta do credor. Sem chave = modo demonstração.
+    pix: (pix && pix.chave) ? {
+      chave: String(pix.chave).trim().slice(0, 77),
+      nome: String(pix.nome || devedor.nome || 'RECEBEDOR').trim().slice(0, 25),
+      cidade: String(pix.cidade || 'SAO PAULO').trim().slice(0, 15)
+    } : null,
     status: 'aberta', // aberta | acordo | paga
     reguaExecutada: [],
     pagamentos: [], // { txid, tipo, parcela, valor, status: 'pendente'|'pago', pagoEm }
@@ -92,11 +98,33 @@ function criarCobranca({ devedor, valor, vencimento, descricao }) {
   return c;
 }
 
+// ---------- BR Code (Pix copia-e-cola oficial, EMV/BCB) ----------
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+function emv(id, valor) { return id + String(valor.length).padStart(2, '0') + valor; }
+function limparTexto(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9 .-]/g, ' ').toUpperCase().trim(); }
+function gerarBrcode(pix, valor, txid) {
+  const conta = emv('00', 'BR.GOV.BCB.PIX') + emv('01', pix.chave);
+  let payload = emv('00', '01') + emv('26', conta) + emv('52', '0000') + emv('53', '986') +
+    emv('54', valor.toFixed(2)) + emv('58', 'BR') + emv('59', limparTexto(pix.nome) || 'RECEBEDOR') +
+    emv('60', limparTexto(pix.cidade) || 'SAO PAULO') + emv('62', emv('05', txid.replace(/[^A-Za-z0-9]/g, '').slice(0, 25)));
+  payload += '6304';
+  return payload + crc16(payload);
+}
+
 function novoPix(cobranca, tipo, parcela, valor) {
-  const txid = 'PIX-' + id().toUpperCase();
-  const p = { txid, tipo, parcela, valor: Number(valor.toFixed(2)), status: 'pendente', criadoEm: new Date().toISOString() };
+  const txid = 'PIX' + id().toUpperCase();
+  const real = !!(cobranca.pix && cobranca.pix.chave);
+  const p = { txid, tipo, parcela, valor: Number(valor.toFixed(2)), status: 'pendente', modo: real ? 'real' : 'demo', criadoEm: new Date().toISOString() };
+  if (real) p.brcode = gerarBrcode(cobranca.pix, p.valor, txid);
   cobranca.pagamentos.push(p);
-  registrarEvento(cobranca.id, 'pix', `Pix (simulado) gerado: ${txid} — R$ ${p.valor.toFixed(2)}${parcela ? ` (parcela ${parcela})` : ''}`);
+  registrarEvento(cobranca.id, 'pix', `Pix ${real ? 'REAL (direto na conta do credor)' : '(simulado)'} gerado: ${txid} — R$ ${p.valor.toFixed(2)}${parcela ? ` (parcela ${parcela})` : ''}`);
   salvar();
   return p;
 }
@@ -165,7 +193,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/api/cobrancas' && req.method === 'POST') {
     const b = await corpo(req);
     if (!b.devedor || !b.devedor.nome || !b.valor || !b.vencimento) return json(res, 400, { erro: 'Campos obrigatórios: devedor.nome, valor, vencimento' });
-    const c = criarCobranca(b);
+    const c = criarCobranca(b); // b.pix = { chave, nome, cidade } opcional → modo real
     rodarRegua(); // executa imediatamente etapas já devidas
     return json(res, 201, c);
   }
@@ -217,6 +245,30 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, db.leads.slice().reverse());
   }
   if (p === '/api/webhook/pix' && req.method === 'POST') {
+    const b = await corpo(req);
+    const r = confirmarPix(b.txid);
+    return json(res, r.erro ? 400 : 200, r);
+  }
+  // Modelo 1: devedor informa que pagou → credor confirma no painel
+  const mInformar = p.match(/^\/api\/portal\/([a-f0-9]+)\/informei$/);
+  if (mInformar && req.method === 'POST') {
+    const c = db.cobrancas.find(c => c.token === mInformar[1]);
+    if (!c) return json(res, 404, { erro: 'Cobrança não encontrada' });
+    const b = await corpo(req);
+    const pg = c.pagamentos.find(x => x.txid === b.txid);
+    if (!pg) return json(res, 404, { erro: 'Pagamento não encontrado' });
+    if (pg.status === 'pendente') {
+      pg.status = 'informado';
+      pg.informadoEm = new Date().toISOString();
+      registrarEvento(c.id, 'pix', `Devedor informou pagamento de R$ ${pg.valor.toFixed(2)} (${pg.txid}) — aguardando o credor confirmar o recebimento na conta`);
+      salvar();
+    }
+    return json(res, 200, { ok: true });
+  }
+  const mConfirmar = p.match(/^\/api\/cobrancas\/([a-f0-9]+)\/confirmar$/);
+  if (mConfirmar && req.method === 'POST') {
+    const c = db.cobrancas.find(c => c.id === mConfirmar[1]);
+    if (!c) return json(res, 404, { erro: 'Cobrança não encontrada' });
     const b = await corpo(req);
     const r = confirmarPix(b.txid);
     return json(res, r.erro ? 400 : 200, r);
